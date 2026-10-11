@@ -1,0 +1,31 @@
+name: Build APK
+on:
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -q man-sports.zip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build
+        working-directory: football-pro
+        run: |
+          npm install
+          npm run three
+          npx cap add android
+          node scripts/patch-android.mjs
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: man-sports-apk
+          path: football-pro/android/app/build/outputs/apk/debug/app-debug.apk
